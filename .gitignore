@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.h5
+*.hdf5
+*.pkl
+*.npy
+*.npz
+.ipynb_checkpoints/
+figures/
+*.png
+*.pdf
