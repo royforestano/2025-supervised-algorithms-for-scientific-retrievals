@@ -57,24 +57,67 @@ def score(y_true,y_pred):
     score = 100*(10-np.sqrt(np.sum((y_pred/y_true-1)**2)/(y_true.shape[0])/6))
     return score
 
-def mare(y_true,y_pred):
+def mape(y_true,y_pred):
     # y_pred[y_pred<=0] = 1e-9
     score = np.mean(np.abs( (y_pred-y_true)/y_true ))
     return score
 
 # Better metric?
-def mare_per_col(y_true,y_pred):
+def mae_per_col(y_true,y_pred):
     # y_pred[y_pred<=0] = 1e-9
     #score = np.mean(np.abs((y_pred-y_true)/y_true),axis=0)
-    # quant = np.quantile(np.abs((y_pred[:]-y_true[:])/y_true[:]),[0.25,0.75], axis=0) # quant not mare anymore
+    # quant = np.quantile(np.abs((y_pred[:]-y_true[:])/y_true[:]),[0.25,0.75], axis=0) # quant not mae anymore
     # score = (quant[1,:]-quant[0,:]).reshape(1,6)
     # score = np.mean(np.abs( (y_pred-y_true)/y_true ),axis=0).reshape(1,6)
     score = np.mean(np.abs((y_true-y_pred)/y_true), axis=0)
     return score
 
 # SK-Learn score: Coefficient of determination
-def sklearn_score(y_true,y_pred):
-    return  1. - np.mean(np.sum((y_true-y_pred)**2,axis=0)/np.sum((y_true-np.mean(y_true,axis=0))**2,axis=0))
+# def sklearn_score(y_true,y_pred):
+#     return  1. - np.mean(np.sum((y_test-y_pred)**2,axis=0)/np.sum((y_test-np.mean(y_test,axis=0))**2,axis=0))
+def sklearn_score(y_true, y_pred):
+    ss_res = np.sum((y_true - y_pred)**2, axis=0)
+    ss_tot = np.sum((y_true - np.mean(y_true, axis=0))**2, axis=0)
+    r2_per_output = 1 - ss_res / ss_tot
+    return r2_per_output
+
+def mse(yt, yp):
+    return np.mean((yt - yp)**2, axis=0)
+
+def rmse(yt, yp):
+    return np.sqrt(np.mean((yt - yp)**2, axis=0))
+
+def print_metrics(yt,yp,target_keys):
+    mape_score = mape(yt,yp)
+    r2_scores = sklearn_score(yt,yp)
+    mse_scores = mse(yt,yp)
+    rmse_scores = rmse(yt,yp)
+    print('--------------------------------------')
+    print('MAPE: ', mape_score)#,'\n')
+    print('--------------------------------------')
+    print(r'$R^2$'+' Scores: ')
+    for i in range(yt.shape[1]):
+        print(target_keys[i]+': ',r2_scores[i])
+    mean_r2 = np.mean(r2_scores)
+    print('M'+r'$R^2$: ',mean_r2)
+    # print('\n')
+    print('--------------------------------------')
+    print('MSE Scores: ')
+    for i in range(yt.shape[1]):
+        print(target_keys[i]+': ',mse_scores[i])
+    mse_temp = mse_scores[0]           # scalar, units of K
+    mse_conc = np.mean(mse_scores[1:]) # mean across 5 concentrations
+    print('MEAN MSE X: ',mse_conc)
+    # print('\n')
+    print('--------------------------------------') 
+    print('RMSE Scores: ')
+    for i in range(yt.shape[1]):
+        print(target_keys[i]+': ',rmse_scores[i])
+    rmse_temp = rmse_scores[0]           # scalar, units of K
+    rmse_conc = np.mean(rmse_scores[1:]) # mean across 5 concentrations
+    print('MEAN RMSE X: ',rmse_conc)
+    # print('\n')
+    return mape_score, r2_scores, mse_scores, rmse_scores
 
 ###################################################################################################################
 # Transforms
